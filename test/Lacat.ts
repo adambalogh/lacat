@@ -62,7 +62,8 @@ describe("Lacat", function () {
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
       await lacat.deposit(unlockTime, { value: 1000 });
-      const fees = 25;
+      await lacat.deposit(unlockTime, { value: 10000 });
+      const fees = 250 + 25;
 
       expect(await lacat.withdrawFees(owner.address)).to.changeEtherBalances(
         [owner, lacat],
@@ -71,6 +72,16 @@ describe("Lacat", function () {
       expect(await lacat.withdrawFees(owner.address)).to.changeEtherBalances(
         [owner, lacat],
         [0, 0]
+      );
+    });
+
+    it("Only owner can withdraw", async function () {
+      const { lacat, otherAccount } = await loadFixture(deployLacat);
+      const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+      await lacat.deposit(unlockTime, { value: 1000 });
+
+      await expect(lacat.connect(otherAccount).withdrawFees(otherAccount.address)).to.be.revertedWith(
+        "Ownable: caller is not the owner"
       );
     });
   });

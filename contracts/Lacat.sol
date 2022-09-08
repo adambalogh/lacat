@@ -51,14 +51,14 @@ contract Lacat is Ownable {
     }
 
     function getDepositStatus(uint depositNo) public view returns (uint256 amount, uint unlockTime, bool isWithdrawn) {
-        require(numDeposits[_msgSender()] >= depositNo, "Lacat: Deposit doesn't exist");
+        require(numDeposits[_msgSender()] > depositNo, "Lacat: Deposit doesn't exist");
         Deposit memory dep = deposits[_msgSender()][depositNo];
 
         return (dep.amount, dep.unlockTime, dep.isWithdrawn);
     }
 
     function withdraw(uint depositNo) public {
-        require(numDeposits[_msgSender()] >= depositNo, "Lacat: Deposit doesn't exist");
+        require(numDeposits[_msgSender()] > depositNo, "Lacat: Deposit doesn't exist");
 
         Deposit memory depositToWithdraw = deposits[_msgSender()][depositNo];
         require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
