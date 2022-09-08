@@ -52,6 +52,33 @@ describe("Lacat", function () {
       ]);
     });
 
+    it("Should support multiple deposits", async function () {
+      const { lacat, otherAccount } = await loadFixture(deployLacat);
+
+      const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+
+      await lacat.connect(otherAccount).deposit(unlockTime, { value: 1000 });
+      await lacat.connect(otherAccount).deposit(unlockTime, { value: 10000 });
+      await lacat.connect(otherAccount).deposit(unlockTime, { value: 100000 });
+
+      expect(await lacat.connect(otherAccount).getNumDeposits()).to.eq(3);
+      expect(await lacat.connect(otherAccount).getDepositStatus(0)).to.eql([
+        ethers.BigNumber.from(975),
+        ethers.BigNumber.from(unlockTime),
+        false
+      ]);
+      expect(await lacat.connect(otherAccount).getDepositStatus(1)).to.eql([
+        ethers.BigNumber.from(9750),
+        ethers.BigNumber.from(unlockTime),
+        false
+      ]);
+      expect(await lacat.connect(otherAccount).getDepositStatus(2)).to.eql([
+        ethers.BigNumber.from(97500),
+        ethers.BigNumber.from(unlockTime),
+        false
+      ]);
+    });
+
   });
 
 
@@ -122,6 +149,37 @@ describe("Lacat", function () {
       await expect(lacat.withdraw(0)).to.be.revertedWith(
         "Lacat: Deposit already withdrawn"
       );
+    });
+
+    it("Should be able to withdraw all deposits", async function () {
+      const { lacat, owner } = await loadFixture(deployLacat);
+
+      const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+      const ownerBalance = (await ethers.provider.getBalance(owner.address));
+
+      await lacat.deposit(unlockTime, { value: 1000 });
+      await lacat.deposit(unlockTime, { value: 10000 });
+      await lacat.deposit(unlockTime, { value: 100000 });
+      const totalFees = 2775;
+
+      expect(await ethers.provider.getBalance(lacat.address)).to.eq(111000);
+
+      await time.increaseTo(unlockTime);
+
+      await expect(lacat.withdraw(0)).to.changeEtherBalances(
+        [owner, lacat],
+        [975, -975]
+      );
+      await expect(lacat.withdraw(1)).to.changeEtherBalances(
+        [owner, lacat],
+        [9750, -9750]
+      );
+      await expect(lacat.withdraw(2)).to.changeEtherBalances(
+        [owner, lacat],
+        [97500, -97500]
+      );
+
+      expect(await ethers.provider.getBalance(lacat.address)).to.eq(totalFees);
     });
   });
 });
