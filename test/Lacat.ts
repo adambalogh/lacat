@@ -108,6 +108,18 @@ describe("Lacat", function () {
         "Ownable: caller is not the owner"
       );
     });
+
+    it("Extra fee for monthly withdraw", async function () {
+      const { lacat, owner } = await loadFixture(deployLacat);
+      const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+      await lacat.deposit(unlockTime, 100, { value: 1000 });
+      const fees = 4;
+
+      expect(await lacat.withdrawFees(owner.address)).to.changeEtherBalances(
+        [owner, lacat],
+        [fees, -fees]
+      );
+    });
   });
 
   describe("Monthly Withdrawal", function () {
@@ -130,7 +142,7 @@ describe("Lacat", function () {
 
       await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
         [owner, lacat],
-        [9975, -9975]
+        [10000, -10000]
       );
       await expect(lacat.withdrawMonthlyAllowance(0)).to.be.revertedWith(
         "Lacat: Last withdrawal was within a month"
@@ -144,7 +156,7 @@ describe("Lacat", function () {
       await time.increase(1000);
       await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
         [owner, lacat],
-        [9975, -9975]
+        [10000, -10000]
       );
     });
 
@@ -158,13 +170,13 @@ describe("Lacat", function () {
 
       await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
         [owner, lacat],
-        [798000, -798000]
+        [800000, -800000]
       );
 
       await time.increase(ONE_MONTH_IN_SECS);
       await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
         [owner, lacat],
-        [199500, -199500]
+        [196000, -196000]
       );
     });
 
@@ -178,7 +190,7 @@ describe("Lacat", function () {
 
       await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
         [owner, lacat],
-        [997500, -997500]
+        [996000, -996000]
       );
 
       await time.increase(ONE_MONTH_IN_SECS);

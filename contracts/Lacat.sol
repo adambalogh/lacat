@@ -17,7 +17,10 @@ contract Lacat is Ownable {
     using SafeMath for uint256;
 
     // depositing costs 0.25% of the deposited funds
-    uint256 constant FEE_BASIS_POINT = 25;
+    uint256 constant BASE_FEE_BASIS_POINT = 25;
+    // using the monthly withdraw feature costs 0.15%
+    uint256 constant MONTHLY_WITHDRAW_FEE_BASIS_POINT = 15;
+
     uint256 constant BASIS_POINT_MULTIPLIER = 10000;
 
     uint constant ONE_MONTH_IN_SEC = 30 * 24 * 60 * 60;
@@ -40,14 +43,14 @@ contract Lacat is Ownable {
         require(monthlyWithdrawBasisPoints >= 0 && monthlyWithdrawBasisPoints <= BASIS_POINT_MULTIPLIER,
             "Lacat: Monthly withdraw basis point must be between 0 and 10000");
 
-        uint depositNo = _numDeposits[_msgSender()];
-        uint256 fee = msg.value.mul(FEE_BASIS_POINT).div(BASIS_POINT_MULTIPLIER);
+        uint256 feeBasisPoints = BASE_FEE_BASIS_POINT + (monthlyWithdrawBasisPoints > 0 ? MONTHLY_WITHDRAW_FEE_BASIS_POINT : 0);
+        uint256 fee = calculateBasisPoint(msg.value, feeBasisPoints);
         uint256 depositAmount = msg.value - fee;
+        uint256 monthlyWithdraw = calculateBasisPoint(msg.value, monthlyWithdrawBasisPoints);
 
-        uint256 monthlyWithdraw = depositAmount.mul(monthlyWithdrawBasisPoints).div(BASIS_POINT_MULTIPLIER);
-
-        _numDeposits[_msgSender()] = depositNo + 1;
+        uint depositNo = _numDeposits[_msgSender()];
         _deposits[_msgSender()].push(Deposit(depositAmount, unlockTime, monthlyWithdraw, 0));
+        _numDeposits[_msgSender()] = depositNo + 1;
         _accumulatedFees += fee;
 
         emit Deposited(_msgSender(), depositAmount, depositNo, block.timestamp, unlockTime);
@@ -102,6 +105,10 @@ contract Lacat is Ownable {
         _accumulatedFees = 0;
 
         payable(to).transfer(fees);
+    }
+
+    function calculateBasisPoint(uint256 amount, uint256 basisPoints) private pure returns (uint256) {
+        return amount.mul(basisPoints).div(BASIS_POINT_MULTIPLIER);
     }
 
     modifier depositExists(uint depositNo) {
