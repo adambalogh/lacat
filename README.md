@@ -1,6 +1,6 @@
 # Lacat - Smart Wallets
 
-Lacat allows you to securely store your funds in a timed safebox.
+Lacat allows you to securely store your funds in a timed safebox (`Lacat.sol`).
 
 After depositing, you can only withdraw your funds after a given point in time in the future that you specify.
 This lets you stop worrying about losing your funds or panic-selling.
