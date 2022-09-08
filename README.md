@@ -16,3 +16,4 @@ Frontend WIP [here](https://github.com/adambalogh/lacat-frontend)
 - change monthly withdrawal limits after deposit
 - support ERC-20 tokens
 - Add staking/yield farming for deposited funds
+- Create own contract for extra safety
