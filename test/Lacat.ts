@@ -31,7 +31,7 @@ describe("Lacat", function () {
 
       const invalidUnlockTime = (await time.latest()) - 1000;
 
-      await expect(lacat.deposit(invalidUnlockTime, { value: 1000 })).to.be.revertedWith(
+      await expect(lacat.deposit(invalidUnlockTime, 0, { value: 1000 })).to.be.revertedWith(
         "Lacat: Unlock time must be in future"
       );
     });
@@ -41,7 +41,7 @@ describe("Lacat", function () {
 
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-      await lacat.connect(otherAccount).deposit(unlockTime, { value: 1000 });
+      await lacat.connect(otherAccount).deposit(unlockTime, 0, { value: 1000 });
       const depositMinusFee = 1000 - 25;
 
       expect(await lacat.connect(otherAccount).getNumDeposits()).to.eq(1);
@@ -57,9 +57,9 @@ describe("Lacat", function () {
 
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-      await lacat.connect(otherAccount).deposit(unlockTime, { value: 1000 });
-      await lacat.connect(otherAccount).deposit(unlockTime, { value: 10000 });
-      await lacat.connect(otherAccount).deposit(unlockTime, { value: 100000 });
+      await lacat.connect(otherAccount).deposit(unlockTime, 0, { value: 1000 });
+      await lacat.connect(otherAccount).deposit(unlockTime, 0, { value: 10000 });
+      await lacat.connect(otherAccount).deposit(unlockTime, 0, { value: 100000 });
 
       expect(await lacat.connect(otherAccount).getNumDeposits()).to.eq(3);
       expect(await lacat.connect(otherAccount).getDepositStatus(0)).to.eql([
@@ -88,8 +88,8 @@ describe("Lacat", function () {
 
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-      await lacat.deposit(unlockTime, { value: 1000 });
-      await lacat.deposit(unlockTime, { value: 10000 });
+      await lacat.deposit(unlockTime, 0, { value: 1000 });
+      await lacat.deposit(unlockTime, 0, { value: 10000 });
       const fees = 250 + 25;
 
       expect(await lacat.withdrawFees(owner.address)).to.changeEtherBalances(
@@ -105,7 +105,7 @@ describe("Lacat", function () {
     it("Only owner can withdraw", async function () {
       const { lacat, otherAccount } = await loadFixture(deployLacat);
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
-      await lacat.deposit(unlockTime, { value: 1000 });
+      await lacat.deposit(unlockTime, 0, { value: 1000 });
 
       await expect(lacat.connect(otherAccount).withdrawFees(otherAccount.address)).to.be.revertedWith(
         "Ownable: caller is not the owner"
@@ -119,7 +119,7 @@ describe("Lacat", function () {
 
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-      await lacat.deposit(unlockTime, { value: 1000 });
+      await lacat.deposit(unlockTime, 0, { value: 1000 });
       const lockedAmount = 1000 - 25;
 
       await time.increaseTo(unlockTime);
@@ -135,7 +135,7 @@ describe("Lacat", function () {
 
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-      await lacat.deposit(unlockTime, { value: 1000 });
+      await lacat.deposit(unlockTime, 0, { value: 1000 });
 
       await time.increaseTo(unlockTime);
 
@@ -157,9 +157,9 @@ describe("Lacat", function () {
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
       const ownerBalance = (await ethers.provider.getBalance(owner.address));
 
-      await lacat.deposit(unlockTime, { value: 1000 });
-      await lacat.deposit(unlockTime, { value: 10000 });
-      await lacat.deposit(unlockTime, { value: 100000 });
+      await lacat.deposit(unlockTime, 0, { value: 1000 });
+      await lacat.deposit(unlockTime, 0, { value: 10000 });
+      await lacat.deposit(unlockTime, 0, { value: 100000 });
       const totalFees = 2775;
 
       expect(await ethers.provider.getBalance(lacat.address)).to.eq(111000);

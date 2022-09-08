@@ -37,9 +37,10 @@ contract Lacat is Ownable {
 
     function deposit(uint unlockTime, uint monthlyWithdraw) public payable {
         require(block.timestamp < unlockTime, "Lacat: Unlock time must be in future");
+        require(monthlyWithdraw <= 1000, "Lacat: Monthly withdraw percentage point must not be greater than 1000");
 
         uint depositNo = _numDeposits[_msgSender()];
-        uint256 fee = msg.value.mul(100).mul(FEE_PERCENTAGE_POINT).div(100000);
+        uint256 fee = msg.value.mul(FEE_PERCENTAGE_POINT).div(1000);
         uint256 depositAmount = msg.value - fee;
 
         _numDeposits[_msgSender()] = depositNo + 1;
@@ -81,7 +82,7 @@ contract Lacat is Ownable {
 
         require(depositToWithdraw.amount > 0, "Lacat: No funds to withdrawn");
 
-        uint256 monthlyAllowance = depositToWithdraw.amount.mul(depositToWithdraw.monthlyWithdrawPercentagePoint).div(100000);
+        uint256 monthlyAllowance = depositToWithdraw.amount.mul(depositToWithdraw.monthlyWithdrawPercentagePoint).div(1000);
 
         uint256 toWithdraw = monthlyAllowance >= depositToWithdraw.amount ? monthlyAllowance : depositToWithdraw.amount;
         uint256 remainingBalance = depositToWithdraw.amount.sub(toWithdraw);
