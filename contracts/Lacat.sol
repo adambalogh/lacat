@@ -9,7 +9,7 @@ struct Deposit {
     uint256 amount;
     uint unlockTime;
 
-    uint monthlyWithdrawal;
+    uint monthlyWithdrawAmount;
     uint lastMonthlyWithdrawTimestamp;
 
     bool isWithdrawn;
@@ -81,14 +81,14 @@ contract Lacat is Ownable {
 
         require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
 
-        require(depositToWithdraw.monthlyWithdrawal > 0, "Lacat: Montly withdrawal not allowed");
+        require(depositToWithdraw.monthlyWithdrawAmount > 0, "Lacat: Montly withdrawal not allowed");
         require(block.timestamp >= depositToWithdraw.lastMonthlyWithdrawTimestamp + ONE_MONTH_IN_SEC,
             "Lacat: Last withdrawal was within a month");
 
         require(depositToWithdraw.amount > 0, "Lacat: No funds to withdrawn");
 
-        uint256 toWithdraw = depositToWithdraw.monthlyWithdrawal <= depositToWithdraw.amount 
-            ? depositToWithdraw.monthlyWithdrawal 
+        uint256 toWithdraw = depositToWithdraw.monthlyWithdrawAmount <= depositToWithdraw.amount 
+            ? depositToWithdraw.monthlyWithdrawAmount
             : depositToWithdraw.amount;
         uint256 remainingBalance = depositToWithdraw.amount.sub(toWithdraw);
 
