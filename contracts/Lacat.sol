@@ -6,8 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 struct Deposit {
-    uint depositNo;
-
     uint256 amount;
     uint unlockTime;
 
@@ -40,7 +38,7 @@ contract Lacat is Ownable {
         uint256 depositAmount = msg.value - fee;
 
         _numDeposits[_msgSender()] = depositNo + 1;
-        _deposits[_msgSender()].push(Deposit(depositNo, depositAmount, unlockTime, false));
+        _deposits[_msgSender()].push(Deposit(depositAmount, unlockTime, false));
         _accumulatedFees += fee;
 
         emit Locked(_msgSender(), depositAmount, depositNo, block.timestamp, unlockTime);
