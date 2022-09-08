@@ -9,7 +9,7 @@ struct Deposit {
     uint256 amount;
     uint unlockTime;
 
-    uint monthlyWithdrawBasisPoint;
+    uint monthlyWithdrawal;
     uint lastMonthlyWithdrawTimestamp;
 
     bool isWithdrawn;
@@ -37,14 +37,16 @@ contract Lacat is Ownable {
         _accumulatedFees = 0;
     }
 
-    function deposit(uint unlockTime, uint monthlyWithdraw) public payable {
+    function deposit(uint unlockTime, uint monthlyWithdrawBasisPoints) public payable {
         require(block.timestamp < unlockTime, "Lacat: Unlock time must be in future");
-        require(monthlyWithdraw <= BASIS_POINT_MULTIPLIER,
+        require(monthlyWithdrawBasisPoints <= BASIS_POINT_MULTIPLIER,
             "Lacat: Monthly withdraw basis point must not be greater than 10000");
 
         uint depositNo = _numDeposits[_msgSender()];
         uint256 fee = msg.value.mul(FEE_BASIS_POINT).div(BASIS_POINT_MULTIPLIER);
         uint256 depositAmount = msg.value - fee;
+
+        uint256 monthlyWithdraw = depositAmount.mul(monthlyWithdrawBasisPoints).div(BASIS_POINT_MULTIPLIER);
 
         _numDeposits[_msgSender()] = depositNo + 1;
         _deposits[_msgSender()].push(Deposit(depositAmount, unlockTime, monthlyWithdraw, 0, false));
@@ -79,17 +81,15 @@ contract Lacat is Ownable {
 
         require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
 
-        require(depositToWithdraw.monthlyWithdrawBasisPoint > 0, "Lacat: Montly withdrawal not allowed");
+        require(depositToWithdraw.monthlyWithdrawal > 0, "Lacat: Montly withdrawal not allowed");
         require(block.timestamp >= depositToWithdraw.lastMonthlyWithdrawTimestamp + ONE_MONTH_IN_SEC,
             "Lacat: Last withdrawal was within a month");
 
         require(depositToWithdraw.amount > 0, "Lacat: No funds to withdrawn");
 
-        uint256 monthlyAllowance = depositToWithdraw.amount
-            .mul(depositToWithdraw.monthlyWithdrawBasisPoint)
-            .div(BASIS_POINT_MULTIPLIER);
-
-        uint256 toWithdraw = monthlyAllowance >= depositToWithdraw.amount ? monthlyAllowance : depositToWithdraw.amount;
+        uint256 toWithdraw = depositToWithdraw.monthlyWithdrawal <= depositToWithdraw.amount 
+            ? depositToWithdraw.monthlyWithdrawal 
+            : depositToWithdraw.amount;
         uint256 remainingBalance = depositToWithdraw.amount.sub(toWithdraw);
 
         _deposits[_msgSender()][depositNo].amount = remainingBalance;
@@ -97,7 +97,7 @@ contract Lacat is Ownable {
 
         payable(_msgSender()).transfer(toWithdraw);
 
-        emit MonthlyWithdraw(_msgSender(), toWithdraw, depositToWithdraw.amount - toWithdraw);
+        emit MonthlyWithdraw(_msgSender(), toWithdraw, remainingBalance);
     }
 
     function withdrawFees(address to) public onlyOwner {

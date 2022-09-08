@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 
 describe("Lacat", function () {
 
+  const ONE_MONTH_IN_SECS = 30 * 24 * 60 * 60;
   const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
 
   async function deployLacat() {
@@ -125,13 +126,31 @@ describe("Lacat", function () {
     });
 
     it("Withdraw once every month", async function () {
-      const { lacat } = await loadFixture(deployLacat);
+      const { lacat, owner } = await loadFixture(deployLacat);
 
       const now = await time.latest();
       const unlockTime = now + ONE_YEAR_IN_SECS;
 
-      await lacat.deposit(unlockTime, 100, { value: 1000 });
+      await lacat.deposit(unlockTime, 100, { value: 1000000 });
 
+      await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
+        [owner, lacat],
+        [9975, -9975]
+      );
+      await expect(lacat.withdrawMonthlyAllowance(0)).to.be.revertedWith(
+        "Lacat: Last withdrawal was within a month"
+      );
+
+      await time.increase(ONE_MONTH_IN_SECS - 1000);
+      await expect(lacat.withdrawMonthlyAllowance(0)).to.be.revertedWith(
+        "Lacat: Last withdrawal was within a month"
+      );
+
+      await time.increase(1000);
+      await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
+        [owner, lacat],
+        [9975, -9975]
+      );
     });
   });
 
