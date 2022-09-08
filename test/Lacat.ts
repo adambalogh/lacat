@@ -21,7 +21,7 @@ describe("Lacat", function () {
       const { lacat, owner } = await loadFixture(deployLacat);
 
       expect(await lacat.owner()).to.equal(owner.address);
-      expect(await lacat.getDeposits()).to.be.empty;
+      expect(await lacat.getNumDeposits()).to.eq(0);
     });
   });
 
@@ -43,7 +43,12 @@ describe("Lacat", function () {
 
       await lacat.connect(otherAccount).deposit(unlockTime, { value: 1000 });
 
-      expect(await lacat.connect(otherAccount).getDeposits()).to.have.lengthOf(1);
+      expect(await lacat.connect(otherAccount).getNumDeposits()).to.eq(1);
+      expect(await lacat.connect(otherAccount).getDepositStatus(0)).to.eql([
+        ethers.BigNumber.from("1000"),
+        ethers.BigNumber.from(unlockTime),
+        false
+      ]);
     });
 
   });
