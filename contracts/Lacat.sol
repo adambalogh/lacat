@@ -20,59 +20,59 @@ contract Lacat is Ownable {
     // depositing costs 0.25% of the deposited funds
     uint256 constant FEE_PERCENTAGE_POINT = 25;
 
-    mapping(address => Deposit[]) deposits;
-    mapping(address => uint) numDeposits;
+    mapping(address => Deposit[]) _deposits;
+    mapping(address => uint) _numDeposits;
 
-    uint256 accumulatedFees;
+    uint256 _accumulatedFees;
 
     event Locked(address depositor, uint amount, uint depositNo, uint when, uint unlockTime);
     event Unlocked(address depositor, uint amount, uint depositNo, uint when, uint unlockTime);
 
     constructor() {
-        accumulatedFees = 0;
+        _accumulatedFees = 0;
     }
 
     function deposit(uint unlockTime) public payable {
         require(block.timestamp < unlockTime, "Lacat: Unlock time must be in future");
 
-        uint depositNo = numDeposits[_msgSender()];
+        uint depositNo = _numDeposits[_msgSender()];
         uint256 fee = msg.value.mul(100).mul(FEE_PERCENTAGE_POINT).div(100000);
         uint256 depositAmount = msg.value - fee;
 
-        numDeposits[_msgSender()] = depositNo + 1;
-        deposits[_msgSender()].push(Deposit(depositNo, depositAmount, unlockTime, false));
-        accumulatedFees += fee;
+        _numDeposits[_msgSender()] = depositNo + 1;
+        _deposits[_msgSender()].push(Deposit(depositNo, depositAmount, unlockTime, false));
+        _accumulatedFees += fee;
 
         emit Locked(_msgSender(), depositAmount, depositNo, block.timestamp, unlockTime);
     }
 
     function getNumDeposits() public view returns (uint) {
-        return numDeposits[_msgSender()];
+        return _numDeposits[_msgSender()];
     }
 
     function getDepositStatus(uint depositNo) public view returns (uint256 amount, uint unlockTime, bool isWithdrawn) {
-        require(numDeposits[_msgSender()] > depositNo, "Lacat: Deposit doesn't exist");
-        Deposit memory dep = deposits[_msgSender()][depositNo];
+        require(_numDeposits[_msgSender()] > depositNo, "Lacat: Deposit doesn't exist");
+        Deposit memory dep = _deposits[_msgSender()][depositNo];
 
         return (dep.amount, dep.unlockTime, dep.isWithdrawn);
     }
 
     function withdraw(uint depositNo) public {
-        require(numDeposits[_msgSender()] > depositNo, "Lacat: Deposit doesn't exist");
+        require(_numDeposits[_msgSender()] > depositNo, "Lacat: Deposit doesn't exist");
 
-        Deposit memory depositToWithdraw = deposits[_msgSender()][depositNo];
+        Deposit memory depositToWithdraw = _deposits[_msgSender()][depositNo];
         require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
         require(block.timestamp >= depositToWithdraw.unlockTime, "Lock: Deposit not yet ready to be withdrawn");
 
-        deposits[_msgSender()][depositNo].isWithdrawn = true;
+        _deposits[_msgSender()][depositNo].isWithdrawn = true;
         payable(_msgSender()).transfer(depositToWithdraw.amount);
 
         emit Unlocked(_msgSender(), depositToWithdraw.amount, depositNo, block.timestamp, depositToWithdraw.unlockTime);
     }
 
     function withdrawFees(address to) public onlyOwner {
-        uint256 fees = accumulatedFees;
-        accumulatedFees = 0;
+        uint256 fees = _accumulatedFees;
+        _accumulatedFees = 0;
 
         payable(to).transfer(fees);
     }
