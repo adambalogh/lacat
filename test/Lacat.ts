@@ -201,6 +201,18 @@ describe("Lacat", function () {
         "Lacat: Deposit already withdrawn"
       );
     });
+
+    it("Invalid withdraw rates", async function () {
+      const { lacat } = await loadFixture(deployLacat);
+
+      const now = await time.latest();
+      const unlockTime = now + ONE_YEAR_IN_SECS;
+
+      await expect(lacat.deposit(unlockTime, 10001, { value: 1000000 })).to.be.revertedWith(
+        "Lacat: Monthly withdraw basis point must be between 0 and 10000"
+      )
+    });
+
   });
 
   describe("Withdrawal", function () {

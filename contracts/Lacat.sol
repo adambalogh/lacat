@@ -39,8 +39,8 @@ contract Lacat is Ownable {
 
     function deposit(uint unlockTime, uint monthlyWithdrawBasisPoints) public payable {
         require(block.timestamp < unlockTime, "Lacat: Unlock time must be in future");
-        require(monthlyWithdrawBasisPoints <= BASIS_POINT_MULTIPLIER,
-            "Lacat: Monthly withdraw basis point must not be greater than 10000");
+        require(monthlyWithdrawBasisPoints <= BASIS_POINT_MULTIPLIER && monthlyWithdrawBasisPoints >= 0,
+            "Lacat: Monthly withdraw basis point must be between 0 and 10000");
 
         uint depositNo = _numDeposits[_msgSender()];
         uint256 fee = msg.value.mul(FEE_BASIS_POINT).div(BASIS_POINT_MULTIPLIER);
