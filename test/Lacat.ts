@@ -29,7 +29,7 @@ describe("Lacat", function () {
     it("Should revert if unlock time is not in future", async function () {
       const { lacat } = await loadFixture(deployLacat);
 
-      const invalidUnlockTime = (await time.latest()) - 1;
+      const invalidUnlockTime = (await time.latest()) - 1000;
 
       await expect(lacat.deposit(invalidUnlockTime, { value: 1000 })).to.be.revertedWith(
         "Lacat: Unlock time must be in future"
@@ -59,7 +59,7 @@ describe("Lacat", function () {
 
       await time.increaseTo(unlockTime);
 
-      await expect(lacat.withdraw(1)).to.changeEtherBalances(
+      await expect(lacat.withdraw(0)).to.changeEtherBalances(
         [owner, lacat],
         [lockedAmount, -lockedAmount]
       );

@@ -24,11 +24,11 @@ contract Lacat is Ownable {
     }
 
     function deposit(uint unlockTime) public payable {
-        require(block.timestamp >= unlockTime, "Lacat: Unlock time must be in future");
+        require(block.timestamp < unlockTime, "Lacat: Unlock time must be in future");
 
-        uint depositNo = numDeposits[_msgSender()] + 1;
+        uint depositNo = numDeposits[_msgSender()];
 
-        numDeposits[_msgSender()] = depositNo;
+        numDeposits[_msgSender()] = depositNo + 1;
         deposits[_msgSender()].push(Deposit(depositNo, msg.value, unlockTime, false));
 
         emit Locked(_msgSender(), msg.value, depositNo, block.timestamp, unlockTime);
