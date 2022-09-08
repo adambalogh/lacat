@@ -152,6 +152,35 @@ describe("Lacat", function () {
         [9975, -9975]
       );
     });
+
+    it("Monthly withdraw exhausts all funds", async function () {
+      const { lacat, owner } = await loadFixture(deployLacat);
+
+      const now = await time.latest();
+      const unlockTime = now + ONE_YEAR_IN_SECS;
+
+      await lacat.deposit(unlockTime, 10000, { value: 1000000 });
+
+      await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
+        [owner, lacat],
+        [997500, -997500]
+      );
+
+      await time.increase(ONE_MONTH_IN_SECS);
+      await expect(lacat.withdrawMonthlyAllowance(0)).to.be.revertedWith(
+        "Lacat: No funds to withdraw"
+      );
+
+      await time.increase(ONE_YEAR_IN_SECS);
+      await expect(lacat.withdraw(0)).to.changeEtherBalances(
+        [owner, lacat],
+        [0, 0]
+      );
+
+      await expect(lacat.withdrawMonthlyAllowance(0)).to.be.revertedWith(
+        "Lacat: Deposit already withdrawn"
+      );
+    });
   });
 
   describe("Withdrawal", function () {

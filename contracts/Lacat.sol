@@ -80,12 +80,11 @@ contract Lacat is Ownable {
         Deposit memory depositToWithdraw = _deposits[_msgSender()][depositNo];
 
         require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
+        require(depositToWithdraw.amount > 0, "Lacat: No funds to withdraw");
 
         require(depositToWithdraw.monthlyWithdrawAmount > 0, "Lacat: Montly withdrawal not allowed");
         require(block.timestamp >= depositToWithdraw.lastMonthlyWithdrawTimestamp + ONE_MONTH_IN_SEC,
             "Lacat: Last withdrawal was within a month");
-
-        require(depositToWithdraw.amount > 0, "Lacat: No funds to withdrawn");
 
         uint256 toWithdraw = depositToWithdraw.monthlyWithdrawAmount <= depositToWithdraw.amount 
             ? depositToWithdraw.monthlyWithdrawAmount
