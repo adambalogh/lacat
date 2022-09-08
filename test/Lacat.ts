@@ -1,5 +1,4 @@
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -30,7 +29,7 @@ describe("Lacat", function () {
     it("Should revert if unlock time is not in future", async function () {
       const { lacat } = await loadFixture(deployLacat);
 
-      const invalidUnlockTime = (await time.latest()) - 1000;
+      const invalidUnlockTime = (await time.latest()) - 100;
 
       await expect(lacat.deposit(invalidUnlockTime, 0, { value: 1000 })).to.be.revertedWith(
         "Lacat: Unlock time must be in future"
