@@ -9,7 +9,7 @@ struct Deposit {
     uint256 amount;
     uint unlockTime;
 
-    uint monthlyWithdrawPercentagePoint;
+    uint monthlyWithdrawBasisPoint;
     uint lastMonthlyWithdrawTimestamp;
 
     bool isWithdrawn;
@@ -19,7 +19,9 @@ contract Lacat is Ownable {
     using SafeMath for uint256;
 
     // depositing costs 0.25% of the deposited funds
-    uint256 constant FEE_PERCENTAGE_POINT = 25;
+    uint256 constant FEE_BASIS_POINT = 25;
+    uint256 constant BASIS_POINT_MULTIPLIER = 10000;
+
     uint constant ONE_MONTH_IN_SEC = 30 * 24 * 60 * 60;
 
     mapping(address => Deposit[]) _deposits;
@@ -37,10 +39,11 @@ contract Lacat is Ownable {
 
     function deposit(uint unlockTime, uint monthlyWithdraw) public payable {
         require(block.timestamp < unlockTime, "Lacat: Unlock time must be in future");
-        require(monthlyWithdraw <= 1000, "Lacat: Monthly withdraw percentage point must not be greater than 1000");
+        require(monthlyWithdraw <= BASIS_POINT_MULTIPLIER,
+            "Lacat: Monthly withdraw basis point must not be greater than 10000");
 
         uint depositNo = _numDeposits[_msgSender()];
-        uint256 fee = msg.value.mul(FEE_PERCENTAGE_POINT).div(1000);
+        uint256 fee = msg.value.mul(FEE_BASIS_POINT).div(BASIS_POINT_MULTIPLIER);
         uint256 depositAmount = msg.value - fee;
 
         _numDeposits[_msgSender()] = depositNo + 1;
@@ -76,13 +79,15 @@ contract Lacat is Ownable {
 
         require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
 
-        require(depositToWithdraw.monthlyWithdrawPercentagePoint > 0, "Lacat: Montly withdrawal not allowed");
+        require(depositToWithdraw.monthlyWithdrawBasisPoint > 0, "Lacat: Montly withdrawal not allowed");
         require(block.timestamp >= depositToWithdraw.lastMonthlyWithdrawTimestamp + ONE_MONTH_IN_SEC,
             "Lacat: Last withdrawal was within a month");
 
         require(depositToWithdraw.amount > 0, "Lacat: No funds to withdrawn");
 
-        uint256 monthlyAllowance = depositToWithdraw.amount.mul(depositToWithdraw.monthlyWithdrawPercentagePoint).div(1000);
+        uint256 monthlyAllowance = depositToWithdraw.amount
+            .mul(depositToWithdraw.monthlyWithdrawBasisPoint)
+            .div(BASIS_POINT_MULTIPLIER);
 
         uint256 toWithdraw = monthlyAllowance >= depositToWithdraw.amount ? monthlyAllowance : depositToWithdraw.amount;
         uint256 remainingBalance = depositToWithdraw.amount.sub(toWithdraw);
