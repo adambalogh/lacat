@@ -11,8 +11,6 @@ struct Deposit {
 
     uint monthlyWithdrawAmount;
     uint lastMonthlyWithdrawTimestamp;
-
-    bool isWithdrawn;
 }
 
 contract Lacat is Ownable {
@@ -49,7 +47,7 @@ contract Lacat is Ownable {
         uint256 monthlyWithdraw = depositAmount.mul(monthlyWithdrawBasisPoints).div(BASIS_POINT_MULTIPLIER);
 
         _numDeposits[_msgSender()] = depositNo + 1;
-        _deposits[_msgSender()].push(Deposit(depositAmount, unlockTime, monthlyWithdraw, 0, false));
+        _deposits[_msgSender()].push(Deposit(depositAmount, unlockTime, monthlyWithdraw, 0));
         _accumulatedFees += fee;
 
         emit Deposited(_msgSender(), depositAmount, depositNo, block.timestamp, unlockTime);
@@ -59,19 +57,21 @@ contract Lacat is Ownable {
         return _numDeposits[_msgSender()];
     }
 
-    function getDepositStatus(uint depositNo) public view depositExists(depositNo) returns (uint256 amount, uint unlockTime, bool isWithdrawn) {
+    function getDepositStatus(uint depositNo) public view depositExists(depositNo) returns (uint256 amount, uint unlockTime) {
         Deposit memory dep = _deposits[_msgSender()][depositNo];
 
-        return (dep.amount, dep.unlockTime, dep.isWithdrawn);
+        return (dep.amount, dep.unlockTime);
     }
 
     function withdraw(uint depositNo) public depositExists(depositNo) {
-        Deposit memory depositToWithdraw = _deposits[_msgSender()][depositNo];
-        require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
+        Deposit storage depositToWithdraw = _deposits[_msgSender()][depositNo];
+        require(depositToWithdraw.amount > 0, "Lacat: Deposit already withdrawn");
         require(block.timestamp >= depositToWithdraw.unlockTime, "Lock: Deposit not yet ready to be withdrawn");
 
-        _deposits[_msgSender()][depositNo].isWithdrawn = true;
-        payable(_msgSender()).transfer(depositToWithdraw.amount);
+        uint256 withdrawal = depositToWithdraw.amount;
+        depositToWithdraw.amount = 0;
+
+        payable(_msgSender()).transfer(withdrawal);
 
         emit FinalWithdraw(_msgSender(), depositToWithdraw.amount, depositNo, block.timestamp, depositToWithdraw.unlockTime);
     }
@@ -79,9 +79,7 @@ contract Lacat is Ownable {
     function withdrawMonthlyAllowance(uint depositNo) public depositExists(depositNo) {
         Deposit storage depositToWithdraw = _deposits[_msgSender()][depositNo];
 
-        require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
-        require(depositToWithdraw.amount > 0, "Lacat: No funds to withdraw");
-
+        require(depositToWithdraw.amount > 0, "Lacat: Deposit already withdrawn");
         require(depositToWithdraw.monthlyWithdrawAmount > 0, "Lacat: Montly withdrawal not allowed");
         require(block.timestamp >= depositToWithdraw.lastMonthlyWithdrawTimestamp + ONE_MONTH_IN_SEC,
             "Lacat: Last withdrawal was within a month");

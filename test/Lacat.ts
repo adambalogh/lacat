@@ -47,8 +47,7 @@ describe("Lacat", function () {
       expect(await lacat.connect(otherAccount).getNumDeposits()).to.eq(1);
       expect(await lacat.connect(otherAccount).getDepositStatus(0)).to.eql([
         ethers.BigNumber.from(depositMinusFee),
-        ethers.BigNumber.from(unlockTime),
-        false
+        ethers.BigNumber.from(unlockTime)
       ]);
     });
 
@@ -65,18 +64,15 @@ describe("Lacat", function () {
 
       expect(await lacat.connect(otherAccount).getDepositStatus(0)).to.eql([
         ethers.BigNumber.from(9975),
-        ethers.BigNumber.from(unlockTime),
-        false
+        ethers.BigNumber.from(unlockTime)
       ]);
       expect(await lacat.connect(otherAccount).getDepositStatus(1)).to.eql([
         ethers.BigNumber.from(99750),
-        ethers.BigNumber.from(unlockTime),
-        false
+        ethers.BigNumber.from(unlockTime)
       ]);
       expect(await lacat.connect(otherAccount).getDepositStatus(2)).to.eql([
         ethers.BigNumber.from(997500),
-        ethers.BigNumber.from(unlockTime),
-        false
+        ethers.BigNumber.from(unlockTime)
       ]);
     });
 
@@ -187,15 +183,14 @@ describe("Lacat", function () {
 
       await time.increase(ONE_MONTH_IN_SECS);
       await expect(lacat.withdrawMonthlyAllowance(0)).to.be.revertedWith(
-        "Lacat: No funds to withdraw"
+        "Lacat: Deposit already withdrawn"
       );
 
       await time.increase(ONE_YEAR_IN_SECS);
-      await expect(lacat.withdraw(0)).to.changeEtherBalances(
-        [owner, lacat],
-        [0, 0]
-      );
 
+      await expect(lacat.withdraw(0)).to.be.revertedWith(
+        "Lacat: Deposit already withdrawn"
+      );
       await expect(lacat.withdrawMonthlyAllowance(0)).to.be.revertedWith(
         "Lacat: Deposit already withdrawn"
       );
@@ -242,9 +237,8 @@ describe("Lacat", function () {
 
       await lacat.withdraw(0);
       expect(await lacat.getDepositStatus(0)).to.eql([
-        ethers.BigNumber.from(9975),
-        ethers.BigNumber.from(unlockTime),
-        true
+        ethers.BigNumber.from(0),
+        ethers.BigNumber.from(unlockTime)
       ]);
 
       await expect(lacat.withdraw(0)).to.be.revertedWith(
