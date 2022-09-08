@@ -42,7 +42,7 @@ describe("Lacat", function () {
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
       await lacat.connect(otherAccount).deposit(unlockTime, 0, { value: 10000 });
-      const depositMinusFee = 10000 - 25;
+      const depositMinusFee = 10000 - 35;
 
       expect(await lacat.connect(otherAccount).getNumDeposits()).to.eq(1);
       expect(await lacat.connect(otherAccount).getDepositStatus(0)).to.eql([
@@ -63,15 +63,15 @@ describe("Lacat", function () {
       expect(await lacat.connect(otherAccount).getNumDeposits()).to.eq(3);
 
       expect(await lacat.connect(otherAccount).getDepositStatus(0)).to.eql([
-        ethers.BigNumber.from(9975),
+        ethers.BigNumber.from(9965),
         ethers.BigNumber.from(unlockTime)
       ]);
       expect(await lacat.connect(otherAccount).getDepositStatus(1)).to.eql([
-        ethers.BigNumber.from(99750),
+        ethers.BigNumber.from(99650),
         ethers.BigNumber.from(unlockTime)
       ]);
       expect(await lacat.connect(otherAccount).getDepositStatus(2)).to.eql([
-        ethers.BigNumber.from(997500),
+        ethers.BigNumber.from(996500),
         ethers.BigNumber.from(unlockTime)
       ]);
     });
@@ -87,13 +87,13 @@ describe("Lacat", function () {
 
       await lacat.deposit(unlockTime, 0, { value: 10000 });
       await lacat.deposit(unlockTime, 0, { value: 100000 });
-      const fees = 250 + 25;
+      const fees = 350 + 35;
 
-      expect(await lacat.withdrawFees(owner.address)).to.changeEtherBalances(
+      await expect(lacat.withdrawFees(owner.address)).to.changeEtherBalances(
         [owner, lacat],
         [fees, -fees]
       );
-      expect(await lacat.withdrawFees(owner.address)).to.changeEtherBalances(
+      await expect(lacat.withdrawFees(owner.address)).to.changeEtherBalances(
         [owner, lacat],
         [0, 0]
       );
@@ -113,9 +113,9 @@ describe("Lacat", function () {
       const { lacat, owner } = await loadFixture(deployLacat);
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
       await lacat.deposit(unlockTime, 100, { value: 1000 });
-      const fees = 4;
+      const fees = 5;
 
-      expect(await lacat.withdrawFees(owner.address)).to.changeEtherBalances(
+      await expect(lacat.withdrawFees(owner.address)).to.changeEtherBalances(
         [owner, lacat],
         [fees, -fees]
       );
@@ -176,7 +176,7 @@ describe("Lacat", function () {
       await time.increase(ONE_MONTH_IN_SECS);
       await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
         [owner, lacat],
-        [196000, -196000]
+        [195000, -195000]
       );
     });
 
@@ -190,7 +190,7 @@ describe("Lacat", function () {
 
       await expect(lacat.withdrawMonthlyAllowance(0)).to.changeEtherBalances(
         [owner, lacat],
-        [996000, -996000]
+        [995000, -995000]
       );
 
       await time.increase(ONE_MONTH_IN_SECS);
@@ -228,7 +228,7 @@ describe("Lacat", function () {
       const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
       await lacat.deposit(unlockTime, 0, { value: 10000 });
-      const lockedAmount = 10000 - 25;
+      const lockedAmount = 10000 - 35;
 
       await time.increaseTo(unlockTime);
 
@@ -266,7 +266,7 @@ describe("Lacat", function () {
       await lacat.deposit(unlockTime, 0, { value: 10000 });
       await lacat.deposit(unlockTime, 0, { value: 100000 });
       await lacat.deposit(unlockTime, 0, { value: 1000000 });
-      const totalFees = 2775;
+      const totalFees = 3885;
 
       expect(await ethers.provider.getBalance(lacat.address)).to.eq(1110000);
 
@@ -274,15 +274,15 @@ describe("Lacat", function () {
 
       await expect(lacat.withdraw(0)).to.changeEtherBalances(
         [owner, lacat],
-        [9975, -9975]
+        [9965, -9965]
       );
       await expect(lacat.withdraw(1)).to.changeEtherBalances(
         [owner, lacat],
-        [99750, -99750]
+        [99650, -99650]
       );
       await expect(lacat.withdraw(2)).to.changeEtherBalances(
         [owner, lacat],
-        [997500, -997500]
+        [996500, -996500]
       );
 
       expect(await ethers.provider.getBalance(lacat.address)).to.eq(totalFees);

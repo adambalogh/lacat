@@ -16,8 +16,8 @@ struct Deposit {
 contract Lacat is Ownable {
     using SafeMath for uint256;
 
-    // depositing costs 0.25% of the deposited funds
-    uint256 constant BASE_FEE_BASIS_POINT = 25;
+    // depositing costs 0.35% of the deposited funds
+    uint256 constant BASE_FEE_BASIS_POINT = 35;
     // using the monthly withdraw feature costs 0.15%
     uint256 constant MONTHLY_WITHDRAW_FEE_BASIS_POINT = 15;
 
