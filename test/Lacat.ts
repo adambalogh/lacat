@@ -69,5 +69,27 @@ describe("Lacat", function () {
         [lockedAmount, -lockedAmount]
       );
     });
+
+    it("Should not be able to withdraw twice", async function () {
+      const { lacat, owner } = await loadFixture(deployLacat);
+
+      const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+      const lockedAmount = 1000;
+
+      await lacat.deposit(unlockTime, { value: lockedAmount });
+
+      await time.increaseTo(unlockTime);
+
+      await lacat.withdraw(0);
+      expect(await lacat.getDepositStatus(0)).to.eql([
+        ethers.BigNumber.from("1000"),
+        ethers.BigNumber.from(unlockTime),
+        true
+      ]);
+
+      await expect(lacat.withdraw(0)).to.be.revertedWith(
+        "Lacat: Deposit already withdrawn"
+      );
+    });
   });
 });

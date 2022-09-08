@@ -52,7 +52,7 @@ contract Lacat is Ownable {
         require(!depositToWithdraw.isWithdrawn, "Lacat: Deposit already withdrawn");
         require(block.timestamp >= depositToWithdraw.unlockTime, "Lock: Deposit not yet ready to be withdrawn");
 
-        depositToWithdraw.isWithdrawn = true;
+        deposits[_msgSender()][depositNo].isWithdrawn = true;
         payable(_msgSender()).transfer(depositToWithdraw.amount);
 
         emit Unlocked(_msgSender(), depositToWithdraw.amount, depositNo, block.timestamp, depositToWithdraw.unlockTime);
