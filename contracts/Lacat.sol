@@ -60,10 +60,11 @@ contract Lacat is Ownable {
         return _numDeposits[_msgSender()];
     }
 
-    function getDepositStatus(uint256 depositNo) public view depositExists(depositNo) returns (uint256 amount, uint unlockTime) {
+    function getDepositStatus(uint256 depositNo) public view depositExists(depositNo) 
+            returns (uint256 amount, uint unlockTime, uint monthlyWithdrawAmount, uint lastWithdraw) {
         Deposit memory dep = _deposits[_msgSender()][depositNo];
 
-        return (dep.amount, dep.unlockTime);
+        return (dep.amount, dep.unlockTime, dep.monthlyWithdrawAmount, dep.lastMonthlyWithdrawTimestamp);
     }
 
     function withdraw(uint depositNo) public depositExists(depositNo) {
