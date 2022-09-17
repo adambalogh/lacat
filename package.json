@@ -32,7 +32,7 @@
   },
   "scripts": {
     "compile": "hardhat compile",
-    "chain": "hardhat node --network hardhat",
+    "chain": "hardhat node",
     "deploy": "hardhat run --network localhost scripts/deploy.ts"
   }
 }
