@@ -10,8 +10,8 @@ const config: HardhatUserConfig = {
       chainId: 1337
     },
     goerli: {
-      url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-      accounts: [`${GOERLI_PRIVATE_KEY}`]
+      url: '',
+      accounts: ['']
     }
   }
 };
