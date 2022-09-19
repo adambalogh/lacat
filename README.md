@@ -11,6 +11,10 @@ in case you need it.
 
 Frontend WIP [here](https://github.com/adambalogh/lacat-frontend)
 
+## Testing
+
+Deployed to Goerli: https://goerli.etherscan.io/address/0xf6dE9D88947DA04Aad964A5129f2535E3a57FB1F
+
 ## Planned features
 
 - change monthly withdrawal limits after deposit
